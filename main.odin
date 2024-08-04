@@ -5,6 +5,8 @@ import "core:os"
 
 main :: proc() {
 	init()
+	disable_no_echo()
+	disable_raw_mode()
 	fd, _ := os.open("log", os.O_RDWR | os.O_TRUNC | os.O_CREATE, 0o644)
 	context.logger = log.create_file_logger(fd)
 	event_loop: for {

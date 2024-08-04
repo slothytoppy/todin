@@ -14,8 +14,8 @@ void disable_raw_mode();
 void disable_no_echo();
 
 void init() {
-  enable_no_echo();
   enable_raw_mode();
+  enable_no_echo();
 }
 
 void deinit() { tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_termios); }
@@ -41,15 +41,15 @@ void enable_raw_mode() {
 }
 
 void disable_raw_mode() {
-  raw.c_iflag &= ~(BRKINT | IGNBRK | ICRNL | INPCK | ISTRIP | IXON);
-  raw.c_lflag &= ~(ICANON | IEXTEN | ISIG);
-  raw.c_oflag &= ~(OPOST);
+  raw.c_iflag |= (BRKINT | IGNBRK | ICRNL | INPCK | ISTRIP | IXON);
+  raw.c_lflag |= (ICANON | IEXTEN | ISIG);
+  raw.c_oflag |= (OPOST);
   raw.c_cflag |= (CS8);
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
 void disable_no_echo() {
-  raw.c_lflag &= ~(ECHO);
+  raw.c_lflag |= ECHO;
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
