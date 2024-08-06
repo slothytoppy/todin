@@ -4,23 +4,38 @@ import "core:log"
 import "core:os"
 
 main :: proc() {
-	init()
-	disable_no_echo()
-	disable_raw_mode()
 	fd, _ := os.open("log", os.O_RDWR | os.O_TRUNC | os.O_CREATE, 0o644)
 	context.logger = log.create_file_logger(fd)
+	init()
+	enter_alternate_screen()
+	move(0, 0)
+	print("hello")
 	event_loop: for {
 		key := poll()
+		if key == nil {
+			continue
+		}
+		key_str := key_to_string(key.?)
+		log.info(key_str)
+		if key_str == "<c-q>" {
+			break event_loop
+		}
+		/*
 		switch v in key {
 		case Event:
-			switch e in v {
+			#partial switch e in v {
+			case:
+				log.info(e)
 			case Key:
+				log.info(e)
 				if e.keyname == 'q' && e.control == true {
+					log.info("QUITING")
 					break event_loop
 				}
-				log.info(e.keyname)
 			}
 		}
+    */
 	}
+	leave_alternate_screen()
 	deinit()
 }

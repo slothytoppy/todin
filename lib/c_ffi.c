@@ -20,18 +20,18 @@ void init() {
 
 void deinit() { tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_termios); }
 
-void enable_no_echo() {
-  raw.c_lflag &= ~(ECHO);
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-}
-
 __attribute__((constructor)) void init_base_termios() {
   tcgetattr(STDIN_FILENO, &original_termios);
   raw = original_termios;
 }
 
+void enable_no_echo() {
+  raw.c_lflag &= ~(ECHO | ECHONL);
+  tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
 void enable_raw_mode() {
-  raw.c_iflag &= ~(BRKINT | IGNBRK | ICRNL | INPCK | ISTRIP | IXON);
+  raw.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | INPCK | ISTRIP | IXON);
   raw.c_lflag &= ~(ICANON | IEXTEN | ISIG);
   raw.c_oflag &= ~(OPOST);
   raw.c_cflag |= (CS8);
