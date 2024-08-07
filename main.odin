@@ -20,21 +20,6 @@ main :: proc() {
 		if key_str == "<c-q>" {
 			break event_loop
 		}
-		/*
-		switch v in key {
-		case Event:
-			#partial switch e in v {
-			case:
-				log.info(e)
-			case Key:
-				log.info(e)
-				if e.keyname == 'q' && e.control == true {
-					log.info("QUITING")
-					break event_loop
-				}
-			}
-		}
-    */
 	}
 	leave_alternate_screen()
 	deinit()
