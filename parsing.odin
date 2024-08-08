@@ -19,7 +19,7 @@ ArrowKey :: enum {
 }
 
 
-State :: enum {
+MachineState :: enum {
 	initial,
 	normal,
 	csi,
@@ -36,7 +36,7 @@ state graph:
 */
 
 parse :: proc(key: []rune) -> Maybe(Event) {
-	state := State.initial
+	state := MachineState.initial
 	event: Maybe(Event) = nil
 	loop: for b, i in key {
 		switch state {
@@ -50,13 +50,13 @@ parse :: proc(key: []rune) -> Maybe(Event) {
 			event, state = escape_state(b, state)
 		case .arrow_key:
 			event, state = arrow_state(b, state)
+		//log.info(state, event)
 		}
-		log.info(state)
 	}
 	return event
 }
 
-initial_state :: proc(datum: rune, state: State) -> (Event, State) {
+initial_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) {
 	switch datum {
 	case 1 ..= 26:
 		return control_state(datum)
@@ -68,8 +68,8 @@ initial_state :: proc(datum: rune, state: State) -> (Event, State) {
 	return nil, .initial
 }
 
-normal_state :: proc(datum: rune) -> (Event, State) {
-	log.info(datum)
+normal_state :: proc(datum: rune) -> (Event, MachineState) {
+	//log.info(datum)
 	switch datum {
 	case 32 ..= 126:
 		return Key{datum, false}, .normal
@@ -79,7 +79,7 @@ normal_state :: proc(datum: rune) -> (Event, State) {
 	return nil, .initial
 }
 
-control_state :: proc(datum: rune) -> (Event, State) {
+control_state :: proc(datum: rune) -> (Event, MachineState) {
 	switch datum {
 	case 1 ..= 26:
 		return Key{keyname = datum + 96, control = true}, .csi
@@ -89,8 +89,8 @@ control_state :: proc(datum: rune) -> (Event, State) {
 	return nil, .initial
 }
 
-escape_state :: proc(datum: rune, state: State) -> (Event, State) {
-	log.info(int(datum), state)
+escape_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) {
+	//log.info(int(datum), state)
 	switch datum {
 	case 27:
 		return EscapeKey{}, .escape
@@ -101,13 +101,19 @@ escape_state :: proc(datum: rune, state: State) -> (Event, State) {
 	return nil, .initial
 }
 
-arrow_state :: proc(datum: rune, state: State) -> (Event, State) {
-	log.info("here")
+arrow_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) {
+	//log.info("here")
 	#partial switch state {
 	case .escape, .arrow_key:
 		switch datum {
-		case 65 ..= 68:
-			return ArrowKey{}, .arrow_key
+		case 65:
+			return .up, .arrow_key
+		case 66:
+			return .down, .arrow_key
+		case 67:
+			return .right, .arrow_key
+		case 68:
+			return .left, .arrow_key
 		}
 	}
 	return nil, .initial
@@ -127,7 +133,6 @@ test_control_key :: proc(t: ^testing.T) {
 	expected := Key{97, true}
 	result := parse(data).?
 	testing.expect_value(t, result, expected)
-
 }
 
 @(test)
@@ -136,5 +141,4 @@ test_arrow_key :: proc(t: ^testing.T) {
 	expected := ArrowKey{}
 	result := parse(data).?
 	testing.expect_value(t, result, expected)
-
 }

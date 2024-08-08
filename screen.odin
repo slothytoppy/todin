@@ -22,11 +22,15 @@ erase_line :: proc() {
 	os.write_string(os.stdin, "\e[2K")
 }
 
-move_print :: proc(y, x: int, args: ..string) {
+move_print :: proc(y, x: int, args: ..any) {
 	move(y, x)
-	print(args)
+	print(..args)
 }
 
 print :: proc(args: ..any) {
 	os.write_string(os.stdin, strings.concatenate({fmt.tprint(..args)}))
+}
+
+delch :: proc() {
+	os.write_string(os.stdin, "\e[1P")
 }

@@ -7,7 +7,7 @@ import "core:strconv"
 import "core:strings"
 
 reset_cursor :: proc() {
-	os.write_string(os.stdin, "\e[0;0H")
+	os.write_string(os.stdin, "\e[H")
 }
 
 move :: proc(#any_int y, x: i32) {
@@ -28,6 +28,26 @@ move_right :: proc() {
 
 move_left :: proc() {
 	fmt.printf("\e[1D")
+}
+
+move_to_start_of_next_line :: proc() {
+	fmt.printf("\e[1E")
+}
+
+scroll_up :: proc() {
+	fmt.printf("\e[1S")
+}
+
+scroll_down :: proc() {
+	fmt.printf("\e[1T")
+}
+
+save_cursor_pos :: proc() {
+	fmt.printf("\e[7")
+}
+
+restore_cursor_pos :: proc() {
+	fmt.printf("\e[8")
 }
 
 get_cursor_pos :: proc() -> (lines, columns: int) {
@@ -56,4 +76,10 @@ get_cursor_pos :: proc() -> (lines, columns: int) {
 		}
 	}
 	return lines, columns
+}
+
+get_max_cursor_pos :: proc() -> (max_lines, max_columns: i32) {
+	max_lines = GLOBAL_WINDOW_SIZE.lines
+	max_columns = GLOBAL_WINDOW_SIZE.cols
+	return max_lines, max_columns
 }
