@@ -24,6 +24,7 @@ main :: proc() {
 			continue
 		}
 		key_str := todin.key_to_string(key.?)
+		log.info(key_str)
 		has_event := update(key_str, &state)
 		view(state)
 		if has_event == true {

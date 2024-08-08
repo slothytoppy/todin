@@ -14,6 +14,7 @@ Event :: union {
 	ArrowKey,
 	EscapeKey,
 	FunctionKey,
+	BackSpace,
 }
 
 get_keypress :: proc() -> []rune {
@@ -45,6 +46,8 @@ key_to_string :: proc(event: Event) -> string {
 	case EscapeKey:
 		return "escape"
 	case FunctionKey:
+	case BackSpace:
+		return "backspace"
 	case Key:
 		key_string := utf8.runes_to_string([]rune{e.keyname})
 		if e.control {

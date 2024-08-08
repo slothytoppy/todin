@@ -11,6 +11,8 @@ Key :: struct {
 	control: bool,
 }
 
+BackSpace :: struct {}
+
 ArrowKey :: enum {
 	up,
 	down,
@@ -25,6 +27,7 @@ MachineState :: enum {
 	csi,
 	escape,
 	arrow_key,
+	backspace,
 }
 
 /* 
@@ -50,6 +53,8 @@ parse :: proc(key: []rune) -> Maybe(Event) {
 			event, state = escape_state(b, state)
 		case .arrow_key:
 			event, state = arrow_state(b, state)
+		case .backspace:
+			event, state = backspace_state(b)
 		//log.info(state, event)
 		}
 	}
@@ -62,6 +67,8 @@ initial_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState)
 		return control_state(datum)
 	case 27:
 		return escape_state(datum, .escape)
+	case 127:
+		return backspace_state(datum)
 	case 32 ..= 126:
 		return normal_state(datum)
 	}
@@ -77,6 +84,15 @@ normal_state :: proc(datum: rune) -> (Event, MachineState) {
 		return nil, .initial
 	}
 	return nil, .initial
+}
+
+backspace_state :: proc(datum: rune) -> (Event, MachineState) {
+	switch datum {
+	case 127:
+		return BackSpace{}, .backspace
+	case:
+		return nil, .initial
+	}
 }
 
 control_state :: proc(datum: rune) -> (Event, MachineState) {
