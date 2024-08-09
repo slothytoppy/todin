@@ -4,7 +4,7 @@ foreign import c_ffi "./lib/c_ffi.a"
 
 @(private)
 WINDOW_SIZE :: struct {
-	lines, cols: i32,
+	cols, rows: i32,
 }
 
 foreign c_ffi {
@@ -15,4 +15,5 @@ foreign c_ffi {
 	enable_raw_mode :: proc() ---
 	disable_raw_mode :: proc() ---
 	GLOBAL_WINDOW_SIZE: WINDOW_SIZE
+	has_resized :: proc() -> bool ---
 }

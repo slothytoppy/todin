@@ -18,7 +18,7 @@ clear_screen :: proc() {
 	os.write_string(os.stdin, "\e[2J")
 }
 
-erase_line :: proc() {
+delete_line :: proc() {
 	os.write_string(os.stdin, "\e[2K")
 }
 

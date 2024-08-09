@@ -18,13 +18,18 @@ main :: proc() {
 	todin.enter_alternate_screen()
 	state: State
 	state.choices = {"hello", "goodbye"}
+	view(state)
 	event_loop: for {
 		key := todin.poll()
 		if key == nil {
 			continue
 		}
-		key_str := todin.key_to_string(key.?)
+		key_str := todin.key_to_string(key)
 		log.info(key_str)
+		if key_str == "resize" {
+			log.info(key)
+			break event_loop
+		}
 		has_event := update(key_str, &state)
 		view(state)
 		if has_event == true {
@@ -72,7 +77,7 @@ view :: proc(state: State) {
 	}
 	todin.reset_cursor()
 	todin.clear_screen()
-	for str, i in state.choices {
+	for str in state.choices {
 		todin.print(str)
 		todin.move_to_start_of_next_line()
 	}
@@ -80,17 +85,19 @@ view :: proc(state: State) {
 }
 
 saturating_add :: proc(#any_int val, amount, max: i32) -> i32 {
-	log.info("add:", val, amount, max)
 	if val + amount < max {
+		log.info("add:", val + amount, max)
 		return val + amount
 	}
+	log.info("add:", val, amount, max)
 	return max
 }
 
 saturating_sub :: proc(#any_int val, amount, min: i32) -> i32 {
-	log.info("sub:", val, amount, min)
 	if val - amount > min {
-		return val + amount
+		log.info("sub:", val - amount, min)
+		return val - amount
 	}
+	log.info("sub:", val, amount, min)
 	return min
 }

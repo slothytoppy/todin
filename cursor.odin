@@ -1,10 +1,8 @@
 package todin
 
 import "core:fmt"
-import "core:log"
 import "core:os"
 import "core:strconv"
-import "core:strings"
 
 reset_cursor :: proc() {
 	os.write_string(os.stdin, "\e[H")
@@ -57,7 +55,7 @@ get_cursor_pos :: proc() -> (lines, columns: int) {
 	if string(buf[:2]) != "\e[" {
 		panic("could not find the proper escape sequence: \"\\e[\"")
 	}
-	start, end, start_idx: int
+	start, start_idx: int
 	for b, i in buf {
 		if b == '[' {
 			start_idx = i + 1
@@ -79,7 +77,7 @@ get_cursor_pos :: proc() -> (lines, columns: int) {
 }
 
 get_max_cursor_pos :: proc() -> (max_lines, max_columns: i32) {
-	max_lines = GLOBAL_WINDOW_SIZE.lines
-	max_columns = GLOBAL_WINDOW_SIZE.cols
+	max_lines = GLOBAL_WINDOW_SIZE.cols
+	max_columns = GLOBAL_WINDOW_SIZE.rows
 	return max_lines, max_columns
 }

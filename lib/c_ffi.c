@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +17,7 @@ struct termios original_termios;
 struct termios raw;
 struct winsize WIN_SIZE;
 WINDOW_SIZE GLOBAL_WINDOW_SIZE = {0};
+bool RESIZED = false;
 
 void handle_resize(int);
 void enable_no_echo();
@@ -48,7 +50,7 @@ void enable_raw_mode() {
   raw.c_oflag &= ~(OPOST);
   raw.c_cflag |= (CS8);
   raw.c_cc[VMIN] = 0;
-  raw.c_cc[VTIME] = 1;
+  raw.c_cc[VTIME] = 0;
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
@@ -82,5 +84,14 @@ WINDOW_SIZE get_win_size() {
 void handle_resize(int signal) {
   if (signal == SIGWINCH) {
     GLOBAL_WINDOW_SIZE = get_win_size();
+    RESIZED = true;
   }
+}
+
+bool has_resized() {
+  if (RESIZED) {
+    RESIZED = false;
+    return true;
+  }
+  return false;
 }
