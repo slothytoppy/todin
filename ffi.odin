@@ -16,4 +16,6 @@ foreign c_ffi {
 	disable_raw_mode :: proc() ---
 	GLOBAL_WINDOW_SIZE: WINDOW_SIZE
 	has_resized :: proc() -> bool ---
+	@(link_name = "poll_stdin")
+	poll :: proc() -> bool ---
 }

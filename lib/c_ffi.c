@@ -1,3 +1,4 @@
+#include <poll.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -18,12 +19,14 @@ struct termios raw;
 struct winsize WIN_SIZE;
 WINDOW_SIZE GLOBAL_WINDOW_SIZE = {0};
 bool RESIZED = false;
+struct pollfd *pollfds;
 
 void handle_resize(int);
 void enable_no_echo();
 void enable_raw_mode();
 void disable_raw_mode();
 void disable_no_echo();
+bool poll_stdin();
 WINDOW_SIZE get_win_size();
 
 void init() {
@@ -37,6 +40,9 @@ __attribute__((constructor)) void init_base_termios() {
   tcgetattr(STDIN_FILENO, &original_termios);
   raw = original_termios;
   GLOBAL_WINDOW_SIZE = get_win_size();
+  pollfds = calloc(1, sizeof(struct pollfd));
+  pollfds[0].fd = 0;
+  pollfds[0].events = POLL_IN;
 }
 
 void enable_no_echo() {
@@ -92,6 +98,20 @@ bool has_resized() {
   if (RESIZED) {
     RESIZED = false;
     return true;
+  }
+  return false;
+}
+
+bool poll_stdin() {
+  int ret = poll(pollfds, 1, 0);
+  if (ret == -1) {
+    return false;
+  } else if (ret == 0) {
+    return false;
+  } else {
+    if (pollfds[0].revents & POLL_IN) {
+      return true;
+    }
   }
   return false;
 }

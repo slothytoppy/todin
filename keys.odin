@@ -3,6 +3,7 @@ package todin
 import "core:log"
 import "core:os"
 import "core:strings"
+import "core:sys/linux"
 import "core:testing"
 import "core:unicode/utf8"
 
@@ -12,7 +13,10 @@ Resize :: struct {
 	new_cols, new_rows: i32,
 }
 
+Nothing :: struct {}
+
 Event :: union {
+	Nothing,
 	Key,
 	ArrowKey,
 	EscapeKey,
@@ -35,31 +39,25 @@ ArrowKey :: enum {
 	right,
 }
 
-
 MachineState :: enum {
 	initial,
 	normal,
 	csi,
 	escape,
-	arrow_key,
 	backspace,
 }
 
-read :: proc() -> []rune {
+read :: proc() -> Event {
+	if has_resized() {
+		log.info("resize")
+		return Resize{GLOBAL_WINDOW_SIZE.cols, GLOBAL_WINDOW_SIZE.rows}
+	}
 	data := make([]byte, 512)
 	bytes_read, err := os.read(os.stdin, data[:])
 	if bytes_read <= 0 || err != os.ERROR_NONE {
 		return nil
 	}
-	return utf8.string_to_runes(string(data[:bytes_read]))
-}
-
-poll :: proc() -> Event {
-	if has_resized() {
-		log.info("resize")
-		return Resize{GLOBAL_WINDOW_SIZE.cols, GLOBAL_WINDOW_SIZE.rows}
-	}
-	return parse(read())
+	return parse(utf8.string_to_runes(string(data[:bytes_read])))
 }
 
 /* 
@@ -83,13 +81,11 @@ parse :: proc(key: []rune) -> Event {
 			event, state = control_state(b)
 		case .escape:
 			event, state = escape_state(b, state)
-		case .arrow_key:
-			event, state = arrow_state(b, state)
 		case .backspace:
 			event, state = backspace_state(b)
-		//log.info(state, event)
 		}
 	}
+	log.info(event, state)
 	return event
 }
 
@@ -103,19 +99,18 @@ initial_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState)
 		return backspace_state(datum)
 	case 32 ..= 126:
 		return normal_state(datum)
+	case:
+		return nil, .initial
 	}
-	return nil, .initial
 }
 
 normal_state :: proc(datum: rune) -> (Event, MachineState) {
-	//log.info(datum)
 	switch datum {
 	case 32 ..= 126:
 		return Key{datum, false}, .normal
 	case:
 		return nil, .initial
 	}
-	return nil, .initial
 }
 
 backspace_state :: proc(datum: rune) -> (Event, MachineState) {
@@ -128,47 +123,39 @@ backspace_state :: proc(datum: rune) -> (Event, MachineState) {
 }
 
 control_state :: proc(datum: rune) -> (Event, MachineState) {
+	log.info(transmute([]byte)utf8.runes_to_string({datum}))
 	switch datum {
 	case 1 ..= 26:
 		return Key{keyname = datum + 96, control = true}, .csi
 	case:
 		return nil, .initial
 	}
-	return nil, .initial
 }
 
 escape_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) {
-	//log.info(int(datum), state)
+	log.info(int(datum), state)
 	switch datum {
 	case 27:
 		return EscapeKey{}, .escape
+	case 91:
+		return nil, .escape
+	case 65:
+		return .up, .escape
+	case 66:
+		return .down, .escape
+	case 67:
+		return .right, .escape
+	case 68:
+		return .left, .escape
+	case:
+		return nil, .initial
 	}
-	if state == .escape && datum == 91 {
-		return nil, .arrow_key
-	}
-	return nil, .initial
-}
-
-arrow_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) {
-	//log.info("here")
-	#partial switch state {
-	case .escape, .arrow_key:
-		switch datum {
-		case 65:
-			return .up, .arrow_key
-		case 66:
-			return .down, .arrow_key
-		case 67:
-			return .right, .arrow_key
-		case 68:
-			return .left, .arrow_key
-		}
-	}
-	return nil, .initial
 }
 
 key_to_string :: proc(event: Event) -> string {
 	switch e in event {
+	case Nothing:
+		return ""
 	case ArrowKey:
 		switch e {
 		case .up:
@@ -205,8 +192,8 @@ key_to_string :: proc(event: Event) -> string {
 
 @(test)
 test_normal_key :: proc(t: ^testing.T) {
-	data := []rune{65}
-	expected := Key{65, false}
+	data := []rune{'A'}
+	expected := Key{'A', false}
 	result := parse(data)
 	testing.expect(t, result == expected)
 }
@@ -234,5 +221,4 @@ test_key_to_string :: proc(t: ^testing.T) {
 	result := key_to_string(parse(key))
 	defer delete(result)
 	testing.expect_value(t, result, expected)
-	log.info(expected, result)
 }

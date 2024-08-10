@@ -20,7 +20,11 @@ main :: proc() {
 	state.choices = {"hello", "goodbye"}
 	view(state)
 	event_loop: for {
-		key := todin.poll()
+		can_read := todin.poll()
+		if !can_read {
+			continue
+		}
+		key := todin.read()
 		if key == nil {
 			continue
 		}
