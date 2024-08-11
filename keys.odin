@@ -3,7 +3,6 @@ package todin
 import "core:log"
 import "core:os"
 import "core:strings"
-import "core:sys/linux"
 import "core:testing"
 import "core:unicode/utf8"
 

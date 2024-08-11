@@ -76,8 +76,6 @@ get_cursor_pos :: proc() -> (lines, columns: int) {
 	return lines, columns
 }
 
-get_max_cursor_pos :: proc() -> (max_lines, max_columns: i32) {
-	max_lines = GLOBAL_WINDOW_SIZE.cols
-	max_columns = GLOBAL_WINDOW_SIZE.rows
-	return max_lines, max_columns
+get_max_cursor_pos :: proc() -> (max_lines, max_rows: i32) {
+	return GLOBAL_WINDOW_SIZE.cols, GLOBAL_WINDOW_SIZE.rows
 }
