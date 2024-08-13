@@ -48,7 +48,7 @@ MachineState :: enum {
 
 read :: proc() -> Event {
 	if has_resized() {
-		log.info("resize")
+		log.debug("resize")
 		return Resize{GLOBAL_WINDOW_SIZE.cols, GLOBAL_WINDOW_SIZE.rows}
 	}
 	data := make([]byte, 512)
@@ -84,7 +84,7 @@ parse :: proc(key: []rune) -> Event {
 			event, state = backspace_state(b)
 		}
 	}
-	log.info(event, state)
+	log.debug(event, state)
 	return event
 }
 
@@ -122,7 +122,7 @@ backspace_state :: proc(datum: rune) -> (Event, MachineState) {
 }
 
 control_state :: proc(datum: rune) -> (Event, MachineState) {
-	log.info(transmute([]byte)utf8.runes_to_string({datum}))
+	log.debug(transmute([]byte)utf8.runes_to_string({datum}))
 	switch datum {
 	case 1 ..= 26:
 		return Key{keyname = datum + 96, control = true}, .csi
@@ -132,7 +132,7 @@ control_state :: proc(datum: rune) -> (Event, MachineState) {
 }
 
 escape_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) {
-	log.info(int(datum), state)
+	log.debug(int(datum), state)
 	switch datum {
 	case 27:
 		return EscapeKey{}, .escape
