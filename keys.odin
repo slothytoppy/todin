@@ -151,7 +151,7 @@ escape_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) 
 	}
 }
 
-key_to_string :: proc(event: Event) -> string {
+event_to_string :: proc(event: Event) -> string {
 	switch e in event {
 	case Nothing:
 		return ""
