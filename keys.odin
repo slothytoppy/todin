@@ -217,7 +217,7 @@ test_arrow_key :: proc(t: ^testing.T) {
 test_key_to_string :: proc(t: ^testing.T) {
 	key := []rune{65}
 	expected := "A"
-	result := key_to_string(parse(key))
+	result := event_to_string(parse(key))
 	defer delete(result)
 	testing.expect_value(t, result, expected)
 }
