@@ -28,7 +28,7 @@ move_print :: proc(y, x: int, args: ..any) {
 }
 
 print :: proc(args: ..any) {
-	os.write_string(os.stdin, strings.concatenate({fmt.tprint(..args)}))
+	os.write_string(os.stdin, fmt.tprint(..args))
 }
 
 delch :: proc() {
