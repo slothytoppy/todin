@@ -14,6 +14,7 @@ foreign c_ffi {
 	disable_no_echo :: proc() ---
 	enable_raw_mode :: proc() ---
 	disable_raw_mode :: proc() ---
+	@(private)
 	GLOBAL_WINDOW_SIZE: WINDOW_SIZE
 	has_resized :: proc() -> bool ---
 	@(link_name = "poll_stdin")

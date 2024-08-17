@@ -1,5 +1,6 @@
 package todin
 
+import "core:fmt"
 import "core:log"
 import "core:os"
 import "core:strings"
@@ -38,6 +39,7 @@ ArrowKey :: enum {
 	right,
 }
 
+@(private = "file")
 MachineState :: enum {
 	initial,
 	normal,
@@ -51,12 +53,13 @@ read :: proc() -> Event {
 		log.debug("resize")
 		return Resize{GLOBAL_WINDOW_SIZE.cols, GLOBAL_WINDOW_SIZE.rows}
 	}
-	data := make([]byte, 512)
+	data: [512]byte
 	bytes_read, err := os.read(os.stdin, data[:])
 	if bytes_read <= 0 || err != os.ERROR_NONE {
 		return nil
 	}
-	return parse(utf8.string_to_runes(string(data[:bytes_read])))
+	event := parse(utf8.string_to_runes(string(data[:bytes_read])))
+	return event
 }
 
 /* 
@@ -67,6 +70,9 @@ state graph:
   escape->escape
 */
 
+
+// parses a slice of runes using ansi parsing, returns an Event
+@(private = "file")
 parse :: proc(key: []rune) -> Event {
 	state := MachineState.initial
 	event: Event
@@ -88,6 +94,7 @@ parse :: proc(key: []rune) -> Event {
 	return event
 }
 
+@(private = "file")
 initial_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) {
 	switch datum {
 	case 1 ..= 26:
@@ -103,6 +110,7 @@ initial_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState)
 	}
 }
 
+@(private = "file")
 normal_state :: proc(datum: rune) -> (Event, MachineState) {
 	switch datum {
 	case 32 ..= 126:
@@ -112,6 +120,7 @@ normal_state :: proc(datum: rune) -> (Event, MachineState) {
 	}
 }
 
+@(private = "file")
 backspace_state :: proc(datum: rune) -> (Event, MachineState) {
 	switch datum {
 	case 127:
@@ -121,6 +130,7 @@ backspace_state :: proc(datum: rune) -> (Event, MachineState) {
 	}
 }
 
+@(private = "file")
 control_state :: proc(datum: rune) -> (Event, MachineState) {
 	log.debug(transmute([]byte)utf8.runes_to_string({datum}))
 	switch datum {
@@ -131,6 +141,7 @@ control_state :: proc(datum: rune) -> (Event, MachineState) {
 	}
 }
 
+@(private = "file")
 escape_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) {
 	log.debug(int(datum), state)
 	switch datum {
@@ -182,7 +193,7 @@ event_to_string :: proc(event: Event) -> string {
 			strings.write_string(&s, ">")
 			return strings.to_string(s)
 		}
-		return utf8.runes_to_string([]rune{e.keyname})
+		return fmt.tprint(e.keyname)
 	case Resize:
 		return "resize"
 	}

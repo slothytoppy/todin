@@ -24,17 +24,13 @@ main :: proc() {
 		if !can_read {
 			continue
 		}
-		key := todin.read()
-		if key == nil {
-			continue
-		}
-		key_str := todin.key_to_string(key)
-		log.info(key_str)
-		if key_str == "resize" {
-			log.info(key)
+		event := todin.read()
+		switch todin.event_to_string(event) {
+		case "resize":
+			log.info(event)
 			break event_loop
 		}
-		has_event := update(key_str, &state)
+		has_event := update(event, &state)
 		view(state)
 		if has_event == true {
 			if state.should_quit == true {
@@ -46,32 +42,36 @@ main :: proc() {
 	todin.deinit()
 }
 
-update :: proc(key: string, state: ^State) -> bool {
+update :: proc(event: todin.Event, state: ^State) -> bool {
 	has_event := false
-	switch key {
-	case "up":
-		state.cursor = saturating_sub(state.cursor, 1, 0)
-		if state.has_selected {
+	#partial switch e in event {
+	case:
+		switch todin.event_to_string(e) {
+		case "up":
 			state.cursor = saturating_sub(state.cursor, 1, 0)
+			if state.has_selected {
+				state.cursor = saturating_sub(state.cursor, 1, 0)
+			}
+			has_event = true
+			state.has_selected = false
+		case "down":
+			state.cursor = saturating_add(state.cursor, 1, cast(i32)len(state.choices) - 1)
+			has_event = true
+			state.has_selected = false
+		case "enter":
+			todin.clear_screen()
+			todin.reset_cursor()
+			assert(state.cursor < cast(i32)len(state.choices))
+			todin.print("selected:", state.choices[state.cursor])
+			log.info("cursor:", state.cursor)
+			state.has_selected = true
+			has_event = true
+		case "<c-q>":
+			state.should_quit = true
+			has_event = true
 		}
-		has_event = true
-		state.has_selected = false
-	case "down":
-		state.cursor = saturating_add(state.cursor, 1, cast(i32)len(state.choices) - 1)
-		has_event = true
-		state.has_selected = false
-	case "enter":
-		todin.clear_screen()
-		todin.reset_cursor()
-		assert(state.cursor < cast(i32)len(state.choices))
-		todin.print("selected:", state.choices[state.cursor])
-		log.info("cursor:", state.cursor)
-		state.has_selected = true
-		has_event = true
-	case "<c-q>":
-		state.should_quit = true
-		has_event = true
 	}
+
 	return has_event
 }
 
