@@ -14,9 +14,11 @@ Resize :: struct {
 }
 
 Nothing :: struct {}
+Enter :: struct {}
 
 Event :: union {
 	Nothing,
+	Enter,
 	Key,
 	ArrowKey,
 	EscapeKey,
@@ -97,6 +99,8 @@ parse :: proc(key: []rune) -> Event {
 @(private = "file")
 initial_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) {
 	switch datum {
+	case 13:
+		return Enter{}, .initial
 	case 1 ..= 26:
 		return control_state(datum)
 	case 27:
@@ -164,6 +168,8 @@ escape_state :: proc(datum: rune, state: MachineState) -> (Event, MachineState) 
 
 event_to_string :: proc(event: Event) -> string {
 	switch e in event {
+	case Enter:
+		return "enter"
 	case Nothing:
 		return ""
 	case ArrowKey:
